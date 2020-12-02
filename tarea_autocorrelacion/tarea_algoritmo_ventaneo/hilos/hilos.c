@@ -3,9 +3,9 @@
 
 #include "defs.h"
 
-extern int* pulse_sensor;
-extern float *producto, *ventana_hann;
-
+extern int *pulse_sensor;
+extern float *producto, *ventana_hann, *correlacion;
+extern int q_correlacion;
 void *funHilo(void *arg)
 {
 	int nucleo = *(int *)arg;
@@ -14,9 +14,26 @@ void *funHilo(void *arg)
 
 	printf("Hilo %d en ejecucion \n", nucleo);
 
-	for (i = nucleo; i < N; i += NUM_HILOS)
+	if (q_correlacion)
 	{
-		producto[i] = ventana_hann[i] * pulse_sensor[i];
+		register int n;
+		float sum;
+		for (i = nucleo; i < N; i += NUM_HILOS)
+		{
+			sum = 0;
+			for (n = 1; n < N; n++)
+			{
+				sum += producto[n] * producto[n - i];
+			}
+			correlacion[i] = sum;
+		}
+	}
+	else
+	{
+		for (i = nucleo; i < N; i += NUM_HILOS)
+		{
+			producto[i] = ventana_hann[i] * pulse_sensor[i];
+		}
 	}
 
 	pthread_exit(arg);
