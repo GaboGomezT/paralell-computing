@@ -1,15 +1,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #include <math.h>
+
 #include "imagen.h"
+#include "helper.h"
 #define DIMASK 3
 
 void RGBToGray( unsigned char *imagenRGB, unsigned char *imagenGray, uint32_t width, uint32_t height );
 void GrayToRGB( unsigned char *imagenRGB, unsigned char *imagenGray, uint32_t width, uint32_t height );
 void Sobel( unsigned char *imagenG, unsigned char *imagenS, uint32_t width, uint32_t height );
 
-unsigned char * reservarMemoria( uint32_t width, uint32_t height );
 
 int main( )
 {
@@ -107,16 +112,3 @@ void RGBToGray( unsigned char *imagenRGB, unsigned char *imagenGray, uint32_t wi
 	}
 }
 
-unsigned char * reservarMemoria( uint32_t width, uint32_t height )
-{
-	unsigned char *imagen;
-
-	imagen = (unsigned char *)malloc( width*height*sizeof(unsigned char) );
-	if( imagen == NULL )
-	{
-		perror("Error al asignar memoria a la imagen");
-		exit(EXIT_FAILURE);
-	}
-
-	return imagen;
-}
