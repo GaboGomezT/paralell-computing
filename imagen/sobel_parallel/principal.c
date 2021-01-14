@@ -77,18 +77,6 @@ void Sobel( unsigned char *imagenG, unsigned char *imagenS, uint32_t width, uint
 		}
 }
 
-void brilloImagen( unsigned char *imagenGray, uint32_t width, uint32_t height )
-{
-	register int indiceGray;
-	int pixel;
-
-	for( indiceGray = 0; indiceGray < (height*width); indiceGray++ )
-	{
-		pixel = imagenGray[indiceGray] + 70;
-		imagenGray[indiceGray] = (pixel > 255)? 255 : (unsigned char)pixel;
-	}
-}
-
 void GrayToRGB( unsigned char *imagenRGB, unsigned char *imagenGray, uint32_t width, uint32_t height )
 {
 	int indiceRGB, indiceGray;
