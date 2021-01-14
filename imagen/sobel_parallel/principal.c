@@ -11,68 +11,49 @@
 #include "helper.h"
 #include "procesamiento.h"
 #include "defs.h"
+#include "hilos.h"
 
-void Sobel( unsigned char *imagenG, unsigned char *imagenS, uint32_t width, uint32_t height );
-
+unsigned char *imagenRGB, *imagenGray, *imagenSobel;
+bmpInfoHeader info;
 
 int main( )
 {
-	bmpInfoHeader info;
-	unsigned char *imagenRGB, *imagenGray, *imagenFiltrada;
+
+	int *hilo;
+	pthread_t tids[NUM_HILOS];
+	int nhs[NUM_HILOS];
+	register int nh;
 
 	imagenRGB = abrirBMP("calle1.bmp", &info );
 
 	displayInfo( &info );
 	imagenGray = reservarMemoria( info.width, info.height );
-	imagenFiltrada = reservarMemoria( info.width, info.height );
-	memset( imagenFiltrada, 255, info.width*info.height );
+	imagenSobel = reservarMemoria( info.width, info.height );
+	memset( imagenSobel, 255, info.width*info.height );
 
 	RGBToGray( imagenRGB, imagenGray, info.width, info.height );
 
-	Sobel( imagenGray, imagenFiltrada, info.width, info.height );
+	printf("Creando hilos...\n");
+	for (nh = 0; nh < NUM_HILOS; nh++)
+	{
+		nhs[nh] = nh;
+		pthread_create(&tids[nh], NULL, funHiloSobel, &nhs[nh]);
+	}
 
-	GrayToRGB( imagenRGB, imagenFiltrada, info.width, info.height );
+	printf("Esperando hilos...\n");
+	for (nh = 0; nh < NUM_HILOS; nh++)
+	{
+		pthread_join(tids[nh], (void **)&hilo);
+		printf("El hilo %d termino \n", *hilo);
+	}
+
+	GrayToRGB( imagenRGB, imagenSobel, info.width, info.height );
 
 	guardarBMP("calle1Sobel.bmp", &info, imagenRGB );
 
 	free( imagenRGB );
 	free( imagenGray );
-	free( imagenFiltrada );
+	free( imagenSobel );
 
 	return 0;
 }
-
-void Sobel( unsigned char *imagenG, unsigned char *imagenS, uint32_t width, uint32_t height )
-{
-	register int x, y, xm, ym;
-	int indicem, indicei, convFila, convCol, factor = 4;
-	int gradienteFila[DIMASK*DIMASK] = {
-		1, 0, -1,
-		2, 0, -2,
-		1, 0, -1
-	};
-	int gradienteColumna[DIMASK*DIMASK] = {
-		-1, -2, -1,
-		0, 0, 0,
-		1, 2, 1
-	};
-	for( y = 0; y <= height-DIMASK; y++ )
-		for( x = 0; x <= width-DIMASK; x++ )
-		{
-			indicem = 0;
-			convFila = 0;
-			convCol = 0;
-			for( ym = 0; ym < DIMASK; ym++ )
-				for( xm = 0; xm < DIMASK; xm++ )
-				{
-					indicei = (y+ym)*width + (x+xm);
-					convFila += imagenG[indicei] * gradienteFila[indicem];
-					convCol += imagenG[indicei] * gradienteColumna[indicem++];
-				}
-			convFila = convFila / factor;
-			convCol = convCol / factor;
-			indicei = (y+1)*width + (x+1);
-			imagenS[indicei] = (unsigned char)sqrt((convFila * convFila) + (convCol * convCol));
-		}
-}
-
