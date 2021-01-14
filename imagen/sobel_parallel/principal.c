@@ -10,7 +10,7 @@
 #include "imagen.h"
 #include "helper.h"
 #include "procesamiento.h"
-#define DIMASK 3
+#include "defs.h"
 
 void Sobel( unsigned char *imagenG, unsigned char *imagenS, uint32_t width, uint32_t height );
 
